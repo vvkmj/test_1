@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - CraveDrop{% endblock %}
+
+{% block content %}
+<div class="error-page-wrapper">
+    <div class="error-box">
+        <div class="error-emoji">🍕❌</div>
+        <h1>404 - Not Found</h1>
+        <p>{{ message or "The page or order you are looking for doesn't exist or has moved." }}</p>
+        <a href="/" class="btn-primary">Return to Food Menu</a>
+    </div>
+</div>
+{% endblock %}

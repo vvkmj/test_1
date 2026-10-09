@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Order Tracking | #{{ order.id }} - CraveDrop{% endblock %}
+
+{% block content %}
+<div class="tracker-page">
+    <div class="tracker-container">
+        
+        <!-- Header / Success Banner -->
+        <div class="tracker-header">
+            <div class="success-animation-icon">🎉</div>
+            <div class="tracker-header-info">
+                <span class="order-code-badge">Order Code: <strong>#{{ order.id }}</strong></span>
+                <h1 class="tracker-title">Your Feast Is On Its Way!</h1>
+                <p class="tracker-subtitle">Thank you, <strong>{{ order.customer_name }}</strong>. We're actively preparing your freshly cooked dishes.</p>
+            </div>
+            
+            <!-- Quick Simulator Bar for Test Repo! -->
+            <div class="test-simulator-box">
+                <div class="sim-label">
+                    <span>🧪 <strong>Test Repo Control</strong></span>
+                    <small>Simulate driver & delivery lifecycle</small>
+                </div>
+                <button class="btn-advance-status" id="advance-status-btn" onclick="advanceOrderStatus('{{ order.id }}')">
+                    Advance Status ⚡
+                </button>
+            </div>
+        </div>
+
+        <div class="tracker-grid">
+            
+            <!-- Left Column: Status Stepper & Courier details -->
+            <div class="tracker-status-col">
+                
+                <!-- Live Timeline Card -->
+                <div class="status-timeline-card">
+                    <div class="timeline-header">
+                        <h3>Delivery Status</h3>
+                        <div class="estimated-time">
+                            <span class="clock-icon">⏱️</span>
+                            <span id="time-estimate">Est. Arrival: ~25 mins</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Multi-step Progress Bar -->
+                    <div class="stepper-track" id="stepper-track" data-current-status="{{ order.status }}">
+                        <div class="step-node {% if order.status in ['placed', 'preparing', 'on_the_way', 'delivered'] %}completed{% endif %}" id="step-placed">
+                            <div class="step-circle">✓</div>
+                            <div class="step-label">
+                                <strong>Order Received</strong>
+                                <small>Confirmed by restaurant</small>
+                            </div>
+                        </div>
+
+                        <div class="step-connector {% if order.status in ['preparing', 'on_the_way', 'delivered'] %}filled{% endif %}" id="conn-1"></div>
+
+                        <div class="step-node {% if order.status in ['preparing', 'on_the_way', 'delivered'] %}completed{% elif order.status == 'placed' %}active{% endif %}" id="step-preparing">
+                            <div class="step-circle">🍳</div>
+                            <div class="step-label">
+                                <strong>In The Kitchen</strong>
+                                <small>Fresh ingredients cooking</small>
+                            </div>
+                        </div>
+
+                        <div class="step-connector {% if order.status in ['on_the_way', 'delivered'] %}filled{% endif %}" id="conn-2"></div>
+
+                        <div class="step-node {% if order.status in ['on_the_way', 'delivered'] %}completed{% endif %}" id="step-on_the_way">
+                            <div class="step-circle">🛵</div>
+                            <div class="step-label">
+                                <strong>Out for Delivery</strong>
+                                <small>Courier is on the road</small>
+                            </div>
+                        </div>
+
+                        <div class="step-connector {% if order.status == 'delivered' %}filled{% endif %}" id="conn-3"></div>
+
+                        <div class="step-node {% if order.status == 'delivered' %}completed{% endif %}" id="step-delivered">
+                            <div class="step-circle">🏡</div>
+                            <div class="step-label">
+                                <strong>Delivered</strong>
+                                <small>Enjoy your meal!</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Driver / Courier Card -->
+                <div class="courier-card">
+                    <div class="courier-avatar">
+                        <span>🚴</span>
+                    </div>
+                    <div class="courier-info">
+                        <h4>Marcus Vance</h4>
+                        <p class="courier-vehicle">⚡ Express E-Bike Courier • ⭐ 4.95 (1,240 deliveries)</p>
+                        <p class="courier-status" id="driver-status-text">Assigned & standing by at the kitchen</p>
+                    </div>
+                    <button class="btn-call-driver" onclick="showToast('Courier notified of your location!')">📞 Contact</button>
+                </div>
+
+                <!-- Delivery Address Card -->
+                <div class="delivery-address-card">
+                    <h4>📍 Drop-off Destination</h4>
+                    <p class="addr-text"><strong>{{ order.delivery_address }}</strong></p>
+                    {% if order.delivery_notes %}
+                    <p class="notes-text"><em>Note: {{ order.delivery_notes }}</em></p>
+                    {% endif %}
+                    <p class="contact-text">Contact: {{ order.customer_phone }}</p>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Order Receipt Details -->
+            <div class="tracker-receipt-col">
+                <div class="receipt-card">
+                    <div class="receipt-header">
+                        <h3>Order Receipt</h3>
+                        <span class="pay-method-badge">Paid via {{ order.payment_method|upper }}</span>
+                    </div>
+
+                    <div class="receipt-items-list">
+                        {% for item in order['items'] %}
+                        <div class="receipt-item-row">
+                            <div class="item-name-qty">
+                                <span class="qty-pill">{{ item.quantity }}x</span>
+                                <span class="name-text">{{ item.name }}</span>
+                            </div>
+                            <div class="item-price-calc">
+                                ${{ "%.2f"|format(item.total_price) }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="receipt-divider"></div>
+
+                    <div class="receipt-cost-breakdown">
+                        <div class="cost-row">
+                            <span>Subtotal</span>
+                            <span>${{ "%.2f"|format(order.subtotal) }}</span>
+                        </div>
+                        {% if order.discount > 0 %}
+                        <div class="cost-row discount-row text-green">
+                            <span>Discount ({% if order.coupon_applied %}{{ order.coupon_applied }}{% else %}Promo{% endif %})</span>
+                            <span>-${{ "%.2f"|format(order.discount) }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="cost-row">
+                            <span>Delivery Fee</span>
+                            <span>{% if order.delivery_fee == 0 %}FREE{% else %}${{ "%.2f"|format(order.delivery_fee) }}{% endif %}</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Service Fee</span>
+                            <span>${{ "%.2f"|format(order.service_fee) }}</span>
+                        </div>
+                        <div class="cost-row">
+                            <span>Estimated Tax</span>
+                            <span>${{ "%.2f"|format(order.tax) }}</span>
+                        </div>
+                        <div class="cost-row final-total-row">
+                            <span>Total Paid</span>
+                            <span>${{ "%.2f"|format(order.total) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-actions">
+                        <a href="/" class="btn-primary btn-back-home">Order Another Feast</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Live updater script for order tracker simulation
+    async function advanceOrderStatus(orderId) {
+        const btn = document.getElementById('advance-status-btn');
+        btn.disabled = true;
+        btn.innerText = 'Updating...';
+
+        try {
+            const resp = await fetch(`/api/orders/${orderId}/advance-status`, { method: 'POST' });
+            const data = await resp.json();
+            if (data.success) {
+                showToast(`Status updated to: ${data.new_status.toUpperCase()}!`);
+                updateStepperUI(data.new_status);
+            } else {
+                showToast(data.error || 'Failed to advance status', 'error');
+            }
+        } catch (e) {
+            showToast('Network error while advancing status', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Advance Status ⚡';
+        }
+    }
+
+    function updateStepperUI(status) {
+        const stages = ['placed', 'preparing', 'on_the_way', 'delivered'];
+        const currentIdx = stages.indexOf(status);
+
+        // Update step nodes
+        stages.forEach((stage, idx) => {
+            const node = document.getElementById(`step-${stage}`);
+            if (!node) return;
+
+            if (idx <= currentIdx) {
+                node.classList.add('completed');
+                node.classList.remove('active');
+            } else {
+                node.classList.remove('completed', 'active');
+            }
+        });
+
+        // Update connectors
+        const conn1 = document.getElementById('conn-1');
+        const conn2 = document.getElementById('conn-2');
+        const conn3 = document.getElementById('conn-3');
+        if (conn1) conn1.classList.toggle('filled', currentIdx >= 1);
+        if (conn2) conn2.classList.toggle('filled', currentIdx >= 2);
+        if (conn3) conn3.classList.toggle('filled', currentIdx >= 3);
+
+        // Update texts
+        const driverStatus = document.getElementById('driver-status-text');
+        const timeEstimate = document.getElementById('time-estimate');
+
+        if (status === 'placed') {
+            if (driverStatus) driverStatus.innerText = 'Order sent to restaurant';
+            if (timeEstimate) timeEstimate.innerText = 'Est. Arrival: ~30 mins';
+        } else if (status === 'preparing') {
+            if (driverStatus) driverStatus.innerText = 'Chef is preparing your meal in kitchen';
+            if (timeEstimate) timeEstimate.innerText = 'Est. Arrival: ~20 mins';
+        } else if (status === 'on_the_way') {
+            if (driverStatus) driverStatus.innerText = 'Marcus has picked up your food and is 5 mins away!';
+            if (timeEstimate) timeEstimate.innerText = 'Est. Arrival: ~6 mins 🛵';
+        } else if (status === 'delivered') {
+            if (driverStatus) driverStatus.innerText = 'Delivered to your doorstep! Bon appétit!';
+            if (timeEstimate) timeEstimate.innerText = 'Delivered! 🎉';
+        }
+    }
+</script>
+{% endblock %}

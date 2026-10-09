@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}CraveDrop | Hot, Fresh & At Your Door{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="fire-icon">🔥</span> FASTEST LOCAL DELIVERY IN 30 MINS
+            </div>
+            <h1 class="hero-title">
+                Artisan Cravings, <br>
+                <span class="gradient-text">Delivered In Flash.</span>
+            </h1>
+            <p class="hero-subtitle">
+                From sizzling wood-fired Neapolitan pizzas to melt-in-your-mouth Wagyu burgers. Handcrafted by master chefs, delivered piping hot to your table.
+            </p>
+
+            <!-- Search and Action Bar -->
+            <div class="hero-search-wrapper">
+                <div class="search-input-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="menu-search-input" placeholder="Search for dishes, flavors, ingredients (e.g. Wagyu, Truffle, Tacos)..." autocomplete="off">
+                    <button type="button" class="clear-search-btn" id="clear-search-btn" style="display: none;" title="Clear search">&times;</button>
+                </div>
+            </div>
+
+            <!-- Trust / Stats badges -->
+            <div class="hero-stats">
+                <div class="stat-pill">
+                    <span class="stat-icon">⏱️</span>
+                    <div>
+                        <strong>22 Mins</strong>
+                        <small>Avg. Delivery</small>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <span class="stat-icon">⭐</span>
+                    <div>
+                        <strong>4.9 / 5.0</strong>
+                        <small>5,000+ Reviews</small>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <span class="stat-icon">🌿</span>
+                    <div>
+                        <strong>100% Fresh</strong>
+                        <small>Chef Sourced</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="hero-card-stack">
+                <div class="hero-card main-hero-card">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80" alt="Gourmet Burger" class="hero-img">
+                    <div class="hero-card-floating-badge top-right">
+                        <span>🔥 #1 Bestseller</span>
+                    </div>
+                    <div class="hero-card-info">
+                        <h3>Black Truffle Wagyu</h3>
+                        <p class="hero-price">$18.95</p>
+                        <button class="btn-quick-add" onclick="quickAddToCart('item-3')">+ Add to Cart</button>
+                    </div>
+                </div>
+                <div class="floating-promo-card">
+                    <div class="promo-icon">🎁</div>
+                    <div class="promo-info">
+                        <strong>Use code SAVE20</strong>
+                        <small>20% off on your first order</small>
+                    </div>
+                    <button class="btn-copy-code" onclick="copyCoupon('SAVE20')">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Storefront Section -->
+<section class="menu-section" id="menu-section">
+    <div class="menu-container">
+        
+        <!-- Category Filter Carousel / Bar -->
+        <div class="category-filter-wrapper">
+            <div class="section-header-row">
+                <div>
+                    <h2 class="section-title" id="menu-heading">Explore By Category</h2>
+                    <p class="section-subtitle">Pick your craving or browse all our chef specialties</p>
+                </div>
+                <div class="items-count-indicator" id="items-count-label">
+                    Showing {{ initial_items|length }} dishes
+                </div>
+            </div>
+
+            <div class="category-pills-container" id="category-pills" role="tablist">
+                {% for cat in categories %}
+                <button 
+                    class="category-pill {% if cat.id == 'all' %}active{% endif %}" 
+                    data-category="{{ cat.id }}" 
+                    role="tab"
+                    id="cat-btn-{{ cat.id }}"
+                >
+                    <span class="cat-icon">{{ cat.icon }}</span>
+                    <span class="cat-name">{{ cat.name }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Filter & Sorting Bar -->
+        <div class="filter-controls-bar">
+            <div class="dietary-filter-group">
+                <button class="filter-chip" id="filter-veg" data-active="false">
+                    🌱 Vegetarian Only
+                </button>
+                <button class="filter-chip" id="filter-spicy" data-active="false">
+                    🌶️ Spicy Picks
+                </button>
+                <button class="filter-chip" id="filter-toprated" data-active="false">
+                    ⭐ Top Rated (4.8+)
+                </button>
+            </div>
+
+            <div class="sort-selector-group">
+                <label for="sort-dropdown">Sort by:</label>
+                <select id="sort-dropdown" class="sort-select">
+                    <option value="popular">Most Popular</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="time">Fastest Prep Time</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Food Items Grid Container -->
+        <div class="food-grid" id="food-grid" aria-live="polite">
+            {% for item in initial_items %}
+            <div class="food-card" id="card-{{ item.id }}" data-category="{{ item.category }}" data-item-id="{{ item.id }}">
+                <div class="card-media">
+                    <img 
+                        src="{{ item.image_url }}" 
+                        alt="{{ item.name }}" 
+                        loading="lazy" 
+                        class="food-img"
+                        onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'"
+                    >
+                    <div class="card-badges">
+                        {% if item.is_bestseller %}
+                        <span class="badge badge-bestseller">★ Bestseller</span>
+                        {% endif %}
+                        {% if item.is_spicy %}
+                        <span class="badge badge-spicy">🌶️ Spicy</span>
+                        {% endif %}
+                        {% if item.is_vegetarian %}
+                        <span class="badge badge-veg">🌱 Veg</span>
+                        {% endif %}
+                    </div>
+                    <div class="prep-pill">
+                        ⏱️ {{ item.prep_time_minutes }}m
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <div class="card-header-line">
+                        <h3 class="food-name">{{ item.name }}</h3>
+                        <div class="food-rating">
+                            <span class="star-icon">★</span>
+                            <span class="rating-num">{{ item.rating }}</span>
+                            <span class="review-count">({{ item.review_count }})</span>
+                        </div>
+                    </div>
+
+                    <p class="food-description">{{ item.description }}</p>
+
+                    <div class="food-meta">
+                        <span class="calorie-tag">🔥 {{ item.calories }} kcal</span>
+                        {% if item.allergens %}
+                        <span class="allergen-tag" title="Allergens: {{ item.allergens|join(', ') }}">Contains: {{ item.allergens|slice(2)|join(', ') }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer-line">
+                        <div class="food-price">${{ "%.2f"|format(item.price) }}</div>
+                        <div class="card-action-container" id="action-{{ item.id }}">
+                            <button 
+                                class="btn-add-cart" 
+                                onclick="addToCart('{{ item.id }}')"
+                                aria-label="Add {{ item.name }} to cart"
+                            >
+                                <span class="plus-icon">+</span> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Empty Results State (hidden by default) -->
+        <div class="no-results-state" id="no-results-state" style="display: none;">
+            <div class="empty-icon">🔎</div>
+            <h3>No delicious dishes found</h3>
+            <p>We couldn't find any items matching your active search or filters.</p>
+            <button class="btn-primary" onclick="resetAllFilters()">Reset All Filters</button>
+        </div>
+
+    </div>
+</section>
+
+<!-- Promotional Deal Banner Strip -->
+<section class="deal-strip">
+    <div class="deal-strip-container">
+        <div class="deal-item">
+            <span class="deal-icon">🚀</span>
+            <div>
+                <h4>Express Dispatch</h4>
+                <p>Hot, insulated bags straight to your doorstep in 30 mins</p>
+            </div>
+        </div>
+        <div class="deal-item">
+            <span class="deal-icon">🛡️</span>
+            <div>
+                <h4>Contactless Delivery</h4>
+                <p>Safe, sealed tamper-evident packaging on every order</p>
+            </div>
+        </div>
+        <div class="deal-item">
+            <span class="deal-icon">💰</span>
+            <div>
+                <h4>Zero Hidden Fees</h4>
+                <p>Transparent pricing with clear subtotal and instant coupons</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

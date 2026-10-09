@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CraveDrop - Artisan food delivery in 30 minutes. Savor handcrafted pizzas, smash burgers, fresh sushi, and street tacos.">
+    <title>{% block title %}CraveDrop | Fast Artisan Food Delivery{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- App Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Top Alert Notification Bar -->
+    <div class="top-announcement">
+        <span class="badge-pulse">🎉 PROMO</span>
+        <span>Get <strong>20% OFF</strong> your order with code <code class="coupon-chip" onclick="copyCoupon('SAVE20')">SAVE20</code> • Free delivery over $40!</span>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="navbar" id="main-navbar">
+        <div class="navbar-container">
+            <a href="/" class="brand-logo" id="logo-link">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Crave<span class="logo-accent">Drop</span></span>
+                <span class="test-badge">TEST REPO</span>
+            </a>
+
+            <div class="delivery-location" id="location-picker">
+                <span class="pin-icon">📍</span>
+                <div class="location-details">
+                    <span class="loc-label">Deliver to:</span>
+                    <span class="loc-address">742 Evergreen Terrace, Springfield</span>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <button class="cart-trigger-btn" id="open-cart-btn" aria-label="Open Shopping Cart">
+                    <span class="cart-icon">🛒</span>
+                    <span class="cart-text">Cart</span>
+                    <span class="cart-count-badge" id="cart-counter">0</span>
+                    <span class="cart-subtotal-badge" id="cart-nav-total">$0.00</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Page Content -->
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Slide-Over Cart Drawer -->
+    <div class="cart-drawer-backdrop" id="cart-backdrop"></div>
+    <aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-heading">
+        <div class="cart-header">
+            <div class="cart-header-title">
+                <h2 id="cart-heading">Your Order</h2>
+                <span class="cart-items-tag" id="drawer-item-count">0 items</span>
+            </div>
+            <button class="close-drawer-btn" id="close-cart-btn" aria-label="Close cart">&times;</button>
+        </div>
+
+        <!-- Free Delivery Progress Tracker -->
+        <div class="free-delivery-banner" id="delivery-banner">
+            <div class="free-delivery-text" id="free-delivery-text">
+                Add <strong>$40.00</strong> more to unlock <strong>FREE Delivery</strong>!
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="free-delivery-progress" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Cart Items List Container -->
+        <div class="cart-items-list" id="cart-items-list">
+            <!-- Dynamically populated by app.js -->
+            <div class="empty-cart-state" id="empty-cart-state">
+                <div class="empty-cart-emoji">🍽️</div>
+                <h3>Your cart is empty</h3>
+                <p>Explore our menu and add your favorite dishes to get started.</p>
+                <button class="btn-primary" onclick="closeCartDrawer()">Browse Delicious Menu</button>
+            </div>
+        </div>
+
+        <!-- Cart Footer & Summary -->
+        <div class="cart-footer" id="cart-footer" style="display: none;">
+            <!-- Coupon Code Section -->
+            <div class="coupon-section">
+                <div class="coupon-input-group">
+                    <input type="text" id="coupon-input" placeholder="Promo code (e.g. SAVE20)" uppercase autocomplete="off">
+                    <button type="button" class="btn-apply-coupon" id="apply-coupon-btn">Apply</button>
+                </div>
+                <div class="coupon-message" id="coupon-message"></div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="cart-summary-breakdown">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="summary-subtotal">$0.00</span>
+                </div>
+                <div class="summary-row" id="row-discount" style="display: none;">
+                    <span>Discount (<span id="discount-code-name"></span>)</span>
+                    <span class="text-green" id="summary-discount">-$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span id="summary-delivery">$3.99</span>
+                </div>
+                <div class="summary-row">
+                    <span>Service Fee (5%)</span>
+                    <span id="summary-service">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Estimated Tax (8.25%)</span>
+                    <span id="summary-tax">$0.00</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total Amount</span>
+                    <span id="summary-total">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Checkout Action Button -->
+            <button class="btn-checkout" id="proceed-checkout-btn">
+                <span>Checkout Now</span>
+                <span class="checkout-arrow">→</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Modal: Checkout Form -->
+    <dialog class="checkout-modal" id="checkout-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Complete Your Order</h2>
+                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+            </div>
+
+            <form id="checkout-form" class="checkout-form">
+                <div class="form-section">
+                    <h3>1. Delivery Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cust-name">Full Name *</label>
+                            <input type="text" id="cust-name" name="customer_name" required placeholder="Jane Doe" value="Alex Rivera">
+                        </div>
+                        <div class="form-group">
+                            <label for="cust-phone">Phone Number *</label>
+                            <input type="tel" id="cust-phone" name="customer_phone" required placeholder="(555) 019-2834" value="(555) 438-9201">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-address">Delivery Address *</label>
+                        <input type="text" id="cust-address" name="delivery_address" required placeholder="123 Main St, Apt 4B" value="742 Evergreen Terrace, Springfield, IL">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-notes">Delivery Instructions (Optional)</label>
+                        <input type="text" id="cust-notes" name="delivery_notes" placeholder="e.g. Ring bell #4, leave by front porch">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>2. Payment Method</h3>
+                    <div class="payment-options">
+                        <label class="payment-card selected">
+                            <input type="radio" name="payment_method" value="card" checked>
+                            <span class="pay-icon">💳</span>
+                            <span class="pay-label">Credit / Debit Card</span>
+                        </label>
+                        <label class="payment-card">
+                            <input type="radio" name="payment_method" value="apple_pay">
+                            <span class="pay-icon">📱</span>
+                            <span class="pay-label">Apple Pay / Google Pay</span>
+                        </label>
+                        <label class="payment-card">
+                            <input type="radio" name="payment_method" value="cod">
+                            <span class="pay-icon">💵</span>
+                            <span class="pay-label">Cash on Delivery</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-summary-review">
+                    <div class="summary-line">
+                        <span>Items Count:</span>
+                        <strong id="modal-item-count">0 items</strong>
+                    </div>
+                    <div class="summary-line final-pay-line">
+                        <span>Total Due:</span>
+                        <strong id="modal-final-total">$0.00</strong>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeCheckoutModal()">Cancel</button>
+                    <button type="submit" class="btn-primary btn-submit-order" id="submit-order-btn">
+                        <span class="btn-text">Place Delivery Order</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Global Toast Notification Container -->
+    <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-col brand-col">
+                <div class="footer-brand">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">Crave<span class="logo-accent">Drop</span></span>
+                </div>
+                <p class="footer-desc">Curated chef-driven restaurants delivered to your doorstep at lightning speed. Built with modern Python Flask & clean architecture.</p>
+                <div class="repo-tag">🧪 Test Repository Showcase Project</div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#menu-heading">Explore Menu</a></li>
+                    <li><a href="javascript:void(0)" onclick="openCartDrawer()">View Cart</a></li>
+                    <li><a href="/api/menu" target="_blank">Menu JSON API</a></li>
+                    <li><a href="/api/categories" target="_blank">Categories API</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Active Test Promo Codes</h4>
+                <div class="promo-pill-list">
+                    <span class="promo-tag" onclick="copyCoupon('SAVE20')">SAVE20 (20% Off)</span>
+                    <span class="promo-tag" onclick="copyCoupon('FEAST10')">FEAST10 ($10 Off >$30)</span>
+                    <span class="promo-tag" onclick="copyCoupon('FREESHIP')">FREESHIP (Free Delivery)</span>
+                    <span class="promo-tag" onclick="copyCoupon('TEST50')">TEST50 (50% Off Test)</span>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Delivery Hours</h4>
+                <p>Monday – Sunday</p>
+                <p class="hours-highlight">10:00 AM – 11:30 PM EST</p>
+                <div class="status-indicator online">
+                    <span class="dot"></span> Accepting Orders Now
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CraveDrop Food Delivery • Complete Python Project for Test & Demonstration</p>
+        </div>
+    </footer>
+
+    <!-- Application Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
