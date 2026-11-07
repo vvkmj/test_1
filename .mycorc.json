@@ -1,0 +1,7 @@
+{
+  "version": "1.2.0",
+  "repository": "vvkmj/test_1",
+  "controlPlaneUrl": "http://localhost:3456",
+  "llmProvider": "groq",
+  "llmModel": "qwen/qwen3.8-27b"
+}
