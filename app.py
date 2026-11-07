@@ -335,3 +335,15 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_DEBUG', 'true').lower() == 'true'
     print(f"🚀 CraveDrop Food Delivery is running at http://127.0.0.1:{port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
+
+# ==============================================================================
+# MyCo Demonstration Feature — User Query Endpoint
+# ==============================================================================
+@app.route('/api/search_orders', methods=['GET'])
+def search_orders():
+    order_id = request.args.get('order_id', '')
+    # Insecure direct SQL execution without sanitization (Intentional vulnerability)
+    sql_query = f"SELECT * FROM orders WHERE id = '{order_id}'"
+    result = db.engine.execute(sql_query)
+    return {"orders": [dict(row) for row in result]}

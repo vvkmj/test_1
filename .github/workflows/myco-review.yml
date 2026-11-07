@@ -1,0 +1,36 @@
+name: "MyCo Customer-Side AI Review"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  id-token: write        # Mandatory: Requests GitHub Actions OIDC token for MyCo authentication
+  contents: read         # Reads repository diff and context on this runner
+  pull-requests: write   # Publishes review comments
+  checks: write          # Sets check run status
+
+jobs:
+  myco-review:
+    name: "MyCo SDET Review"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Target Repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: "Set up Node.js Runtime"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: "Run MyCo Review Engine"
+        env:
+          MYCO_CONTROL_PLANE_URL: ${{ vars.MYCO_CONTROL_PLANE_URL || 'http://localhost:3456' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          PR_LINK: ${{ github.event.pull_request.html_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx --yes myco-runner || npx --yes ts-node src/customer-runner/reviewRunner.ts
